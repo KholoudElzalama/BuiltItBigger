@@ -11,6 +11,7 @@ import com.google.api.client.googleapis.services.GoogleClientRequestInitializer;
 import java.io.IOException;
 
 
+
 public class  Jokes {
 
 
@@ -27,7 +28,6 @@ public class  Jokes {
                     // - 10.0.2.2 is localhost's IP address in Android emulator
                     // - turn off compression when running against local devappserver
                     .setRootUrl("http://10.0.2.2:8080/_ah/api/")
-                    // .setRootUrl("http://197.167.4.66:8080/_ah/api/")
                     .setGoogleClientRequestInitializer(new GoogleClientRequestInitializer() {
                         @Override
                         public void initialize(AbstractGoogleClientRequest<?> abstractGoogleClientRequest) throws IOException {
@@ -42,8 +42,8 @@ public class  Jokes {
 
         try {
             long id = 1;
-            temp = jokeApiService.get(id).execute();
-           String joke = temp.getJoke();
+            String joke = jokeApiService.get(id).execute().getJoke();
+
             return joke;
         } catch (IOException e) {
             return e.getMessage();
