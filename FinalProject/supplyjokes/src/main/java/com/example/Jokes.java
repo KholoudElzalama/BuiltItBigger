@@ -11,7 +11,6 @@ import com.google.api.client.googleapis.services.GoogleClientRequestInitializer;
 import java.io.IOException;
 
 
-
 public class  Jokes {
 
 
@@ -43,8 +42,8 @@ public class  Jokes {
 
         try {
             long id = 1;
-            String joke = jokeApiService.get(id).execute().getJoke();
-
+            temp = jokeApiService.get(id).execute();
+           String joke = temp.getJoke();
             return joke;
         } catch (IOException e) {
             return e.getMessage();
