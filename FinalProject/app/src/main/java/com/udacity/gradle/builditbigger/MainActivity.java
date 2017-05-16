@@ -1,6 +1,7 @@
 package com.udacity.gradle.builditbigger;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -9,8 +10,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.example.Jokes;
 import com.example.android.displayjoke.JokeActivity;
+import com.example.win.myapplication.backend.myApi.MyApi;
+import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.extensions.android.json.AndroidJsonFactory;
+import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
+import com.google.api.client.googleapis.services.GoogleClientRequestInitializer;
+
+import java.io.IOException;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -54,31 +61,50 @@ public class MainActivity extends AppCompatActivity {
         progress.show();
 
         //execute asynk task
-        new EndpointsAsyncTask().execute();
+       new EndpointsAsyncTask().execute();
     }
-    public class EndpointsAsyncTask extends AsyncTask<Void,Void, String> {
+    class EndpointsAsyncTask extends AsyncTask<Void, Void, String> {
+        private  MyApi myApiService = null;
+        private Context context;
 
         @Override
-        protected String doInBackground(Void... voids) {
+        protected String doInBackground(Void... params) {
+            if(myApiService == null) {  // Only do this once
+                MyApi.Builder builder = new MyApi.Builder(AndroidHttp.newCompatibleTransport(),
+                        new AndroidJsonFactory(), null)
+                        // options for running against local devappserver
+                        // - 10.0.2.2 is localhost's IP address in Android emulator
+                        // - turn off compression when running against local devappserver
+                        .setRootUrl("http://10.0.2.2:8080/_ah/api/")
+                        .setGoogleClientRequestInitializer(new GoogleClientRequestInitializer() {
+                            @Override
+                            public void initialize(AbstractGoogleClientRequest<?> abstractGoogleClientRequest) throws IOException {
+                                abstractGoogleClientRequest.setDisableGZipContent(true);
+                            }
+                        });
+                // end options for devappserver
 
-            Jokes jokes = new Jokes();
-            String joke = jokes.tellJoke();
-            return joke;
+                myApiService = builder.build();
+            }
+
+
+
+            try {
+                return myApiService.sayHi().execute().getData();
+            } catch (IOException e) {
+                return e.getMessage();
+            }
         }
-
 
         @Override
         protected void onPostExecute(String result) {
-          MainActivity.joke = result;
-            // make intent to android lib
+           // Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
             Intent intent = new Intent(MainActivity.this,JokeActivity.class);
             //put joke(result of asynk task) as an extra
             intent.putExtra(JokeActivity.joke_key,result);
             progress.dismiss();
             startActivity(intent);
         }
-
-
     }
 
 }
